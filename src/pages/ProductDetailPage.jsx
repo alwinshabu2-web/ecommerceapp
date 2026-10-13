@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingCart, ArrowLeft, Star, Leaf, Recycle,
-  CheckCircle, Package, Award, Info, ChevronDown, ChevronUp,
+  CheckCircle, Package, Award, Info, ChevronDown, ChevronUp, Heart, Zap
 } from 'lucide-react';
 import { getProductById, products } from '../data/products';
 import ProductGallery from '../components/ProductGallery';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
 import { formatPrice } from '../utils/helpers';
 
@@ -51,6 +52,7 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToast } = useToast();
   const [qty, setQty] = useState(1);
 
@@ -69,11 +71,27 @@ export default function ProductDetailPage() {
 
   const isOutOfStock = product.stock === 'Out of Stock';
   const isLowStock = product.stock === 'Low Stock';
+  const wishlisted = isInWishlist(product.id);
 
   function handleAddToCart() {
     if (isOutOfStock) return;
     for (let i = 0; i < qty; i++) addToCart(product);
     addToast({ message: `${qty}× "${product.name}" added to cart!`, type: 'success' });
+  }
+
+  function handleBuyNow() {
+    if (isOutOfStock) return;
+    for (let i = 0; i < qty; i++) addToCart(product);
+    navigate('/checkout');
+  }
+
+  function handleToggleWishlist() {
+    toggleWishlist(product);
+    if (!wishlisted) {
+      addToast({ message: `Saved "${product.name}" to your wishlist!`, type: 'success' });
+    } else {
+      addToast({ message: `Removed "${product.name}" from wishlist.`, type: 'info' });
+    }
   }
 
   // Related products: same category, not same product
@@ -181,39 +199,69 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Quantity + Add to Cart */}
+            {/* Quantity + Actions */}
             {!isOutOfStock && (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+              <div className="space-y-3 pt-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {/* Quantity selector */}
+                  <div className="flex items-center justify-between sm:justify-start border-2 border-gray-200 rounded-xl overflow-hidden self-start">
+                    <button
+                      type="button"
+                      onClick={() => setQty(q => Math.max(1, q - 1))}
+                      aria-label="Decrease quantity"
+                      disabled={qty <= 1}
+                      className="w-11 h-11 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 font-bold text-lg"
+                    >
+                      −
+                    </button>
+                    <span className="w-14 text-center font-bold text-gray-900 border-x-2 border-gray-200 py-2.5" aria-label={`Quantity: ${qty}`}>
+                      {qty}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQty(q => q + 1)}
+                      aria-label="Increase quantity"
+                      className="w-11 h-11 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 font-bold text-lg"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Add to Cart */}
                   <button
                     type="button"
-                    onClick={() => setQty(q => Math.max(1, q - 1))}
-                    aria-label="Decrease quantity"
-                    disabled={qty <= 1}
-                    className="w-11 h-11 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500"
+                    onClick={handleAddToCart}
+                    className="btn-primary flex-1 justify-center py-3 text-base shadow-sm"
                   >
-                    −
-                  </button>
-                  <span className="w-14 text-center font-bold text-gray-900 border-x-2 border-gray-200 py-2" aria-label={`Quantity: ${qty}`}>
-                    {qty}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setQty(q => q + 1)}
-                    aria-label="Increase quantity"
-                    className="w-11 h-11 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500"
-                  >
-                    +
+                    <ShoppingCart className="w-5 h-5" />
+                    Add to Cart — {formatPrice(product.price * qty)}
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="btn-primary flex-1 justify-center py-3 text-base"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  Add to Cart — {formatPrice(product.price * qty)}
-                </button>
+
+                {/* Secondary Actions: Buy Now & Wishlist */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleBuyNow}
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-2 border-emerald-600 font-bold px-6 py-3 rounded-xl transition-all duration-200"
+                  >
+                    <Zap className="w-5 h-5 fill-emerald-600 text-emerald-600" />
+                    Instant Checkout
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleWishlist}
+                    aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+                    className={`p-3.5 rounded-xl border-2 transition-all flex items-center justify-center ${
+                      wishlisted
+                        ? 'bg-rose-50 border-rose-400 text-rose-600 shadow-sm'
+                        : 'bg-white border-gray-200 text-gray-600 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50/50'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 transition-transform duration-200 ${wishlisted ? 'fill-rose-500' : ''}`} />
+                  </button>
+                </div>
               </div>
             )}
 

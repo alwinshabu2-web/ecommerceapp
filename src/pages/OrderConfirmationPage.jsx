@@ -118,6 +118,12 @@ export default function OrderConfirmationPage() {
               <span>Subtotal</span>
               <span className="font-medium">{formatPrice(order.subtotal)}</span>
             </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between text-emerald-600 font-semibold">
+                <span>Discount {order.couponCode ? `(${order.couponCode})` : ''}</span>
+                <span>-{formatPrice(order.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-700">
               <span>Shipping ({order.deliveryLabel})</span>
               <span className="font-medium">{formatPrice(order.deliveryCharge)}</span>

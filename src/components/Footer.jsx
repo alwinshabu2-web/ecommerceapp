@@ -81,6 +81,7 @@ export default function Footer() {
             {[
               { label: 'Home', to: '/' },
               { label: 'All Products', to: '/products' },
+              { label: 'Saved Wishlist', to: '/wishlist' },
               { label: 'My Orders', to: '/orders' },
               { label: 'About Us', to: '/about' },
               { label: 'Cart', to: '/cart' },

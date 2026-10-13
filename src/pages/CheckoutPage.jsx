@@ -48,7 +48,8 @@ export default function CheckoutPage() {
     safeWrite(FORM_STORAGE_KEY, { contact, shipping, sameAsBilling, billing, delivery, payment });
   }, [contact, shipping, sameAsBilling, billing, delivery, payment]);
 
-  const { subtotal, shipping: shippingCost, tax, total } = calcCartTotals(cart, delivery);
+  const couponCode = safeRead('ecp_coupon', '');
+  const { subtotal, shipping: shippingCost, discount, tax, total } = calcCartTotals(cart, delivery, couponCode);
 
   // If cart is empty and no order was just placed, show empty state
   if (cart.length === 0 && !createdOrder) {
@@ -124,6 +125,8 @@ export default function CheckoutPage() {
         paymentStatus,
         status: 'Order Placed',
         subtotal,
+        discount,
+        couponCode: couponCode || null,
         tax,
         total,
       };
@@ -146,8 +149,9 @@ export default function CheckoutPage() {
         console.warn('Could not save tracking init:', err);
       }
 
-      // 2. Clear persisted draft form
+      // 2. Clear persisted draft form and applied coupon
       safeWrite(FORM_STORAGE_KEY, {});
+      localStorage.removeItem('ecp_coupon');
 
       // 3. Clear cart only AFTER order is successfully saved
       clearCart();
@@ -297,7 +301,7 @@ export default function CheckoutPage() {
 
             {/* Right column — live order summary */}
             <div className="lg:sticky lg:top-20 lg:self-start">
-              <OrderSummary cart={cart} deliveryKey={delivery} showItems />
+              <OrderSummary cart={cart} deliveryKey={delivery} promoCode={couponCode} showItems />
 
               {/* Estimated delivery recap */}
               <div className="mt-4 bg-primary-50 border border-primary-100 rounded-2xl p-4">

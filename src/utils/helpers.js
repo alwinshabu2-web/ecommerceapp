@@ -8,17 +8,40 @@ export const SHIPPING_RATES = {
 
 export const TAX_RATE = 0.18; // 18% GST (illustrative)
 
+export const PROMO_CODES = {
+  ECO10: { code: 'ECO10', label: '10% Eco Discount', type: 'percent', value: 0.10 },
+  GREENBUILD: { code: 'GREENBUILD', label: '₹500 Builder Rebate', type: 'flat', value: 500 },
+  EARTH: { code: 'EARTH', label: 'Free Delivery Credit', type: 'shipping', value: 299 },
+};
+
 /**
  * Calculate cart totals.
- * Returns { subtotal, shipping, tax, total, itemCount }
+ * Returns { subtotal, shipping, discount, promo, tax, total, itemCount }
  */
-export function calcCartTotals(items, deliveryKey = 'standard') {
+export function calcCartTotals(items, deliveryKey = 'standard', promoCode = '') {
   const itemCount = items.reduce((acc, i) => acc + i.qty, 0);
   const subtotal = items.reduce((acc, i) => acc + i.price * i.qty, 0);
-  const shipping = itemCount === 0 ? 0 : (SHIPPING_RATES[deliveryKey]?.charge ?? 299);
-  const tax = Math.round((subtotal + shipping) * TAX_RATE);
-  const total = subtotal + shipping + tax;
-  return { subtotal, shipping, tax, total, itemCount };
+  const baseShipping = itemCount === 0 ? 0 : (SHIPPING_RATES[deliveryKey]?.charge ?? 299);
+  let shipping = baseShipping;
+
+  let discount = 0;
+  const promo = promoCode ? PROMO_CODES[promoCode.trim().toUpperCase()] : null;
+  if (promo && itemCount > 0) {
+    if (promo.type === 'percent') {
+      discount = Math.round(subtotal * promo.value);
+    } else if (promo.type === 'flat') {
+      discount = Math.min(subtotal, promo.value);
+    } else if (promo.type === 'shipping') {
+      discount = Math.min(shipping, promo.value);
+    }
+  }
+
+  const effectiveSubtotal = promo?.type === 'shipping' ? subtotal : Math.max(0, subtotal - discount);
+  const effectiveShipping = promo?.type === 'shipping' ? Math.max(0, shipping - discount) : shipping;
+  const tax = Math.round((effectiveSubtotal + effectiveShipping) * TAX_RATE);
+  const total = effectiveSubtotal + effectiveShipping + tax;
+
+  return { subtotal, shipping: effectiveShipping, baseShipping, discount, promo, tax, total, itemCount };
 }
 
 export const formatPrice = (n) =>

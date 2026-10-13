@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Star, Recycle, CheckCircle } from 'lucide-react';
+import { ShoppingCart, Eye, Star, Recycle, CheckCircle, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
 import { formatPrice } from '../utils/helpers';
 
@@ -19,8 +20,11 @@ function EcoStars({ rating }) {
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  const wishlisted = isInWishlist(product.id);
 
   function handleAddToCart(e) {
     e.preventDefault();
@@ -28,6 +32,17 @@ export default function ProductCard({ product }) {
     if (product.stock === 'Out of Stock') return;
     addToCart(product);
     addToast({ message: `"${product.name}" added to cart!`, type: 'success' });
+  }
+
+  function handleToggleWishlist(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
+    if (!wishlisted) {
+      addToast({ message: `Saved "${product.name}" to wishlist!`, type: 'success' });
+    } else {
+      addToast({ message: `Removed "${product.name}" from wishlist.`, type: 'info' });
+    }
   }
 
   const isOutOfStock = product.stock === 'Out of Stock';
@@ -49,18 +64,32 @@ export default function ProductCard({ product }) {
         />
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {product.isRecycled && (
             <span className="eco-badge text-xs">
               <Recycle className="w-3 h-3" /> Recycled
             </span>
           )}
           {product.isBestSeller && (
-            <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
               ⭐ Best Seller
             </span>
           )}
         </div>
+
+        {/* Wishlist Heart Button */}
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 shadow-md ${
+            wishlisted
+              ? 'bg-rose-500 text-white scale-110 shadow-rose-500/30'
+              : 'bg-white/90 text-gray-500 hover:text-rose-500 hover:bg-white hover:scale-105'
+          }`}
+        >
+          <Heart className={`w-4 h-4 transition-transform duration-200 ${wishlisted ? 'fill-white stroke-white' : ''}`} />
+        </button>
 
         {/* Stock overlay */}
         {isOutOfStock && (
@@ -73,7 +102,7 @@ export default function ProductCard({ product }) {
 
         {isLowStock && !isOutOfStock && (
           <div className="absolute bottom-3 left-3">
-            <span className="bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+            <span className="bg-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm">
               Only {product.stockQty} left
             </span>
           </div>

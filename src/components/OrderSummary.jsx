@@ -1,12 +1,12 @@
 import { formatPrice, calcCartTotals, SHIPPING_RATES, TAX_RATE } from '../utils/helpers';
-import { Info } from 'lucide-react';
+import { Info, Tag } from 'lucide-react';
 
 /**
  * Reusable order summary panel.
- * Props: cart, deliveryKey, showItems (bool)
+ * Props: cart, deliveryKey, promoCode, showItems (bool)
  */
-export default function OrderSummary({ cart, deliveryKey = 'standard', showItems = true }) {
-  const { subtotal, shipping, tax, total, itemCount } = calcCartTotals(cart, deliveryKey);
+export default function OrderSummary({ cart, deliveryKey = 'standard', promoCode = '', showItems = true }) {
+  const { subtotal, shipping, discount, promo, tax, total, itemCount } = calcCartTotals(cart, deliveryKey, promoCode);
   const rate = SHIPPING_RATES[deliveryKey];
 
   return (
@@ -47,19 +47,31 @@ export default function OrderSummary({ cart, deliveryKey = 'standard', showItems
           <span>Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})</span>
           <span className="font-medium">{formatPrice(subtotal)}</span>
         </div>
+
+        {discount > 0 && (
+          <div className="flex justify-between text-emerald-600 font-medium">
+            <span className="flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              Promo ({promo?.code})
+            </span>
+            <span>-{formatPrice(discount)}</span>
+          </div>
+        )}
+
         <div className="flex justify-between text-gray-700">
           <div className="flex items-center gap-1">
             <span>Shipping</span>
             {rate && <span className="text-xs text-gray-400">({rate.label})</span>}
           </div>
           <span className="font-medium">
-            {shipping === 0 ? <span className="text-primary-600">Free</span> : formatPrice(shipping)}
+            {shipping === 0 ? <span className="text-primary-600 font-semibold">Free</span> : formatPrice(shipping)}
           </span>
         </div>
+
         <div className="flex justify-between text-gray-700">
           <div className="flex items-center gap-1.5">
             <span>GST ({Math.round(TAX_RATE * 100)}%)</span>
-            <span title="Goods and Services Tax applied on subtotal + shipping">
+            <span title="Goods and Services Tax applied">
               <Info className="w-3.5 h-3.5 text-gray-400" />
             </span>
           </div>
