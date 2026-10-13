@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" fill="none">
+  <rect width="600" height="450" fill="#F3F4F6"/>
+  <rect x="230" y="140" width="140" height="110" rx="12" fill="#E5E7EB"/>
+  <path d="M250 220L280 185L310 220" stroke="#9CA3AF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M295 205L320 175L350 220" stroke="#9CA3AF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="330" cy="170" r="10" fill="#9CA3AF"/>
+  <text x="300" y="290" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#4B5563">EcoConstruct Pro</text>
+  <text x="300" y="315" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#9CA3AF">Sustainable Construction Material</text>
+</svg>

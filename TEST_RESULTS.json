@@ -1,0 +1,83 @@
+{
+  "results": [
+    {
+      "id": "F1",
+      "title": "All 11 products show correct photographs",
+      "pass": true,
+      "details": "Found 11 products; 11 loaded successfully"
+    },
+    {
+      "id": "F2",
+      "title": "Each product has at least 4 relevant distinct images",
+      "pass": true,
+      "details": "Product p001 has 4 distinct thumbnail images"
+    },
+    {
+      "id": "F3",
+      "title": "Thumbnails and zoom work",
+      "pass": true,
+      "details": "Thumbnail switched active image, modal opened with zoom controls and closed"
+    },
+    {
+      "id": "F4",
+      "title": "A newly placed order starts at Order Placed",
+      "pass": true,
+      "details": "Initial status badge: \"Simulated: Order Placed\""
+    },
+    {
+      "id": "F5",
+      "title": "Status advances every 20 seconds",
+      "pass": true,
+      "details": "Timer actively ticking; at 20s status is \"Simulated: Processing\""
+    },
+    {
+      "id": "F6",
+      "title": "Pause keeps progress",
+      "pass": true,
+      "details": "Paused mode saved; elapsed remained steady at 21s"
+    },
+    {
+      "id": "F7",
+      "title": "Resume continues from the paused status",
+      "pass": true,
+      "details": "Resumed from 21s to 24s"
+    },
+    {
+      "id": "F8",
+      "title": "Stop prevents further automatic progression",
+      "pass": true,
+      "details": "Stopped permanently; elapsed stayed at 24s"
+    },
+    {
+      "id": "F9",
+      "title": "Restart works only after user requests it and confirms",
+      "pass": true,
+      "details": "Declining confirm preserved stopped state; accepting reset to Order Placed at 0s (mode: running)"
+    },
+    {
+      "id": "F10",
+      "title": "Delivered stops the timer automatically",
+      "pass": true,
+      "details": "Reached 80s -> mode set to \"completed\", status \"Delivered\", timer stopped at 80s"
+    },
+    {
+      "id": "F11",
+      "title": "Refresh preserves status and tracking mode",
+      "pass": true,
+      "details": "After reload: status \"Shipped\", mode \"paused\", elapsed 45s"
+    },
+    {
+      "id": "F12",
+      "title": "Two or more orders progress independently",
+      "pass": true,
+      "details": "Order 1 remained completed (80s); Order 2 progressed independently to 2s"
+    },
+    {
+      "id": "F13",
+      "title": "Checkout, order confirmation, cart and order history still work",
+      "pass": true,
+      "details": "My Orders renders 5 complete order cards with details and items"
+    }
+  ],
+  "consoleErrors": []
+}
