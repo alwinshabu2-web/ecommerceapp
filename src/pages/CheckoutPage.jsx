@@ -42,6 +42,38 @@ export default function CheckoutPage() {
   const [billing, setBilling] = useState({ ...emptyAddress, ...saved.billing });
   const [delivery, setDelivery] = useState(saved.delivery || 'standard');
   const [payment, setPayment] = useState(saved.payment || '');
+  const [paymentDetails, setPaymentDetails] = useState({
+    upiId: '',
+    cardholderName: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+  });
+
+  const handlePaymentChange = (method) => {
+    setPayment(method);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.payment;
+      delete next.upiId;
+      delete next.cardholderName;
+      delete next.cardNumber;
+      delete next.expiryDate;
+      delete next.cvv;
+      return next;
+    });
+  };
+
+  const handlePaymentDetailsChange = (field, value) => {
+    setPaymentDetails((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
 
   // Persist non-sensitive fields on every change
   useEffect(() => {
@@ -70,6 +102,34 @@ export default function CheckoutPage() {
     const miscErrors = {};
     if (!delivery) miscErrors.delivery = 'Please select a delivery method.';
     if (!payment) miscErrors.payment = 'Please select a payment method.';
+
+    if (payment === 'upi') {
+      if (!paymentDetails.upiId?.trim()) {
+        miscErrors.upiId = 'UPI ID is required.';
+      } else if (!/^[\w.-]+@[\w.-]+$/.test(paymentDetails.upiId.trim())) {
+        miscErrors.upiId = 'Please enter a valid UPI ID (e.g. name@bank or mobile@upi).';
+      }
+    } else if (payment === 'card') {
+      if (!paymentDetails.cardholderName?.trim()) {
+        miscErrors.cardholderName = 'Cardholder name is required.';
+      }
+      const rawCardNum = (paymentDetails.cardNumber || '').replace(/\s+/g, '');
+      if (!rawCardNum) {
+        miscErrors.cardNumber = 'Card number is required.';
+      } else if (!/^\d{15,19}$/.test(rawCardNum)) {
+        miscErrors.cardNumber = 'Please enter a valid card number.';
+      }
+      if (!paymentDetails.expiryDate?.trim()) {
+        miscErrors.expiryDate = 'Expiry date is required.';
+      } else if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(paymentDetails.expiryDate.trim())) {
+        miscErrors.expiryDate = 'Enter a valid expiry date (MM/YY).';
+      }
+      if (!paymentDetails.cvv?.trim()) {
+        miscErrors.cvv = 'CVV is required.';
+      } else if (!/^\d{3,4}$/.test(paymentDetails.cvv.trim())) {
+        miscErrors.cvv = 'Enter a valid 3 or 4-digit CVV.';
+      }
+    }
 
     return { ...contactErrors, ...shippingErrors, ...billingErrors, ...miscErrors };
   }
@@ -155,6 +215,7 @@ export default function CheckoutPage() {
 
       // 3. Clear cart only AFTER order is successfully saved
       clearCart();
+      setPaymentDetails({ upiId: '', cardholderName: '', cardNumber: '', expiryDate: '', cvv: '' });
 
       // 4. Save created order state and open Success Modal
       setCreatedOrder(order);
@@ -265,8 +326,11 @@ export default function CheckoutPage() {
               <FormSection>
                 <PaymentOptions
                   selected={payment}
-                  onChange={setPayment}
+                  onChange={handlePaymentChange}
                   error={errors.payment}
+                  details={paymentDetails}
+                  onDetailsChange={handlePaymentDetailsChange}
+                  errors={errors}
                 />
               </FormSection>
 
